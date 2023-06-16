@@ -1,0 +1,2 @@
+# graphical-user-interface-for-solving-ordinary-differential-equations
+This function solves a set of ordinary differential equations (ODEs) that represent a target cell limited model with a GUI. It takes as input the ODE model parameters and an input file containing experimental data. It plots the numerically integrated solution of the ODE and the sum of squared residuals between experimental data and model solution.
