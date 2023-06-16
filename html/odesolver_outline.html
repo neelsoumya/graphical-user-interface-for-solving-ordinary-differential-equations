@@ -1,0 +1,1170 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>odesolver_outline</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2011-10-20"><meta name="DC.source" content="odesolver_outline.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> varargout = odesolver_outline(varargin)
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">% function to call ODE solver and plot results and calculate SSR</span>
+<span class="comment">%</span>
+<span class="comment">% Name - odesolver_outline</span>
+<span class="comment">% Creation Date - 18th Oct 2011</span>
+<span class="comment">% Author - Soumya Banerjee</span>
+<span class="comment">% Website - www.cs.unm.edu/~soumya</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Description - function to call ODE solver with eclipse phase, target cell</span>
+<span class="comment">%                   limited model, and plot results and</span>
+<span class="comment">%                   calculate SSR</span>
+<span class="comment">%</span>
+<span class="comment">% Parameters -</span>
+<span class="comment">%               target - initial target cell density (/mL)</span>
+<span class="comment">%               infected1 - initial latently infected cell density (/mL)</span>
+<span class="comment">%               infected2 - initial productively infected cell density</span>
+<span class="comment">%               (/mL)</span>
+<span class="comment">%               virus - initial virus density (/mL)</span>
+<span class="comment">%               beta - infectivity</span>
+<span class="comment">%               p - replication rate (PFU/day)</span>
+<span class="comment">%               delta - infected cell death rate )/day)</span>
+<span class="comment">%               gamma - immune system clearance rate (/day)</span>
+<span class="comment">%               k - eclipse phase (rate of transition from I1 to I2) (/day)</span>
+<span class="comment">%               time_phase - duration of simulation(days)</span>
+<span class="comment">%               time_vector - vector of measured times (days)</span>
+<span class="comment">%               fileptr - handle to data file</span>
+<span class="comment">%               plotfig - 1 if data and model simulation needs to be</span>
+<span class="comment">%                          plotted,</span>
+<span class="comment">%                         0 if no plot needed</span>
+<span class="comment">%               figorssr - 1 if there is a need to access the data file</span>
+<span class="comment">%                           (needed when need to calculate SSR or</span>
+<span class="comment">%                            need to plot the data in the figure),</span>
+<span class="comment">%                          0 if access to data file is not needed</span>
+<span class="comment">%               mac - 1 if this is my mac,</span>
+<span class="comment">%                     0 if my linux desktop</span>
+<span class="comment">%               interp - 1 if interpolation of simulation needed,</span>
+<span class="comment">%                        0 if not needed</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Assumptions - 1) all parameters passed in numerical values and are</span>
+<span class="comment">%                   positive real numbers</span>
+<span class="comment">%</span>
+<span class="comment">% Comments -</span>
+<span class="comment">%</span>
+<span class="comment">% License -      BSD license</span>
+<span class="comment">%</span>
+<span class="comment">% Change History -</span>
+<span class="comment">%                   18th Oct 2011 - Creation by Soumya Banerjee</span>
+<span class="comment">%                   20th Oct 2011 - Modified by Soumya Banerjee to</span>
+<span class="comment">%                           validate text fields and added SSR field</span>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+<span class="comment">% ODESOLVER_OUTLINE MATLAB code for odesolver_outline.fig</span>
+<span class="comment">%      ODESOLVER_OUTLINE, by itself, creates a new ODESOLVER_OUTLINE or raises the existing</span>
+<span class="comment">%      singleton*.</span>
+<span class="comment">%</span>
+<span class="comment">%      H = ODESOLVER_OUTLINE returns the handle to a new ODESOLVER_OUTLINE or the handle to</span>
+<span class="comment">%      the existing singleton*.</span>
+<span class="comment">%</span>
+<span class="comment">%      ODESOLVER_OUTLINE('CALLBACK',hObject,eventData,handles,...) calls the local</span>
+<span class="comment">%      function named CALLBACK in ODESOLVER_OUTLINE.M with the given input arguments.</span>
+<span class="comment">%</span>
+<span class="comment">%      ODESOLVER_OUTLINE('Property','Value',...) creates a new ODESOLVER_OUTLINE or raises the</span>
+<span class="comment">%      existing singleton*.  Starting from the left, property value pairs are</span>
+<span class="comment">%      applied to the GUI before odesolver_outline_OpeningFcn gets called.  An</span>
+<span class="comment">%      unrecognized property name or invalid value makes property application</span>
+<span class="comment">%      stop.  All inputs are passed to odesolver_outline_OpeningFcn via varargin.</span>
+<span class="comment">%</span>
+<span class="comment">%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one</span>
+<span class="comment">%      instance to run (singleton)".</span>
+<span class="comment">%</span>
+<span class="comment">% See also: GUIDE, GUIDATA, GUIHANDLES</span>
+
+<span class="comment">% Edit the above text to modify the response to help odesolver_outline</span>
+
+<span class="comment">% Last Modified by GUIDE v2.5 20-Oct-2011 18:05:21</span>
+
+<span class="comment">% Begin initialization code - DO NOT EDIT</span>
+
+
+
+gui_Singleton = 1;
+gui_State = struct(<span class="string">'gui_Name'</span>,       mfilename, <span class="keyword">...</span>
+                   <span class="string">'gui_Singleton'</span>,  gui_Singleton, <span class="keyword">...</span>
+                   <span class="string">'gui_OpeningFcn'</span>, @odesolver_outline_OpeningFcn, <span class="keyword">...</span>
+                   <span class="string">'gui_OutputFcn'</span>,  @odesolver_outline_OutputFcn, <span class="keyword">...</span>
+                   <span class="string">'gui_LayoutFcn'</span>,  [] , <span class="keyword">...</span>
+                   <span class="string">'gui_Callback'</span>,   []);
+<span class="keyword">if</span> nargin &amp;&amp; ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+<span class="keyword">else</span>
+    gui_mainfcn(gui_State, varargin{:});
+<span class="keyword">end</span>
+<span class="comment">% End initialization code - DO NOT EDIT</span>
+
+
+<span class="comment">% --- Executes just before odesolver_outline is made visible.</span>
+<span class="keyword">function</span> odesolver_outline_OpeningFcn(hObject, eventdata, handles, varargin)
+<span class="comment">% This function has no output args, see OutputFcn.</span>
+<span class="comment">% hObject    handle to figure</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+<span class="comment">% varargin   command line arguments to odesolver_outline (see VARARGIN)</span>
+
+<span class="comment">% Choose default command line output for odesolver_outline</span>
+handles.output = hObject;
+
+<span class="comment">% Update handles structure</span>
+guidata(hObject, handles);
+
+<span class="comment">% UIWAIT makes odesolver_outline wait for user response (see UIRESUME)</span>
+<span class="comment">% uiwait(handles.figure1);</span>
+
+
+<span class="comment">% --- Outputs from this function are returned to the command line.</span>
+<span class="keyword">function</span> varargout = odesolver_outline_OutputFcn(hObject, eventdata, handles)
+<span class="comment">% varargout  cell array for returning output args (see VARARGOUT);</span>
+<span class="comment">% hObject    handle to figure</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Get default command line output from handles structure</span>
+varargout{1} = handles.output;
+
+
+<span class="comment">% --- Executes on button press in pushbutton1.</span>
+<span class="keyword">function</span> pushbutton1_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to pushbutton1 (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+target = str2double(get(handles.target_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(target)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.target_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'Target cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'Target must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+k = str2double(get(handles.eclipse_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(k)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.eclipse_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'k cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'k must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+gamma = str2double(get(handles.gamma_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(gamma)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.gamma_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'Gamma cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'Gamma must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+V0 = str2double(get(handles.V0_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(V0)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.V0_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'V0 cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'V0 must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+beta = str2double(get(handles.beta_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(beta)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.beta_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'Beta cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'Beta must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+p = str2double(get(handles.p_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(p)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.p_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'p cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'p must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+delta = str2double(get(handles.delta_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(delta)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.delta_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'Delta cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'Delta must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+endtime = str2double(get(handles.endtime_editText,<span class="string">'String'</span>));
+<span class="comment">% validate field str2double returns NaN if textbox empty or</span>
+<span class="comment">% has non-numeric value</span>
+<span class="keyword">if</span> isnan(endtime)
+    <span class="comment">% test if field empty</span>
+    <span class="keyword">if</span> isempty(get(handles.endtime_editText,<span class="string">'String'</span>))
+        line{1}=<span class="string">'Endtime cannot be empty (must be a positive real number)'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">else</span>
+        <span class="comment">% field must be non-numeric</span>
+        line{1}=<span class="string">'Endtime must be a positive real number'</span>;
+        msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+filename = get(handles.filename_editText,<span class="string">'String'</span>);
+<span class="comment">% validate field</span>
+<span class="keyword">if</span> isempty(filename)
+    line{1}=<span class="string">'Filename cannot be empty (must be alphanumeric)'</span>;
+    msgbox(line,<span class="string">'Invalid value'</span>,<span class="string">'warn'</span>);
+    <span class="keyword">return</span>
+<span class="keyword">else</span>
+    <span class="comment">% check if file exists in current directory</span>
+    <span class="keyword">if</span> ~exist(filename,<span class="string">'file'</span>)
+        line{1}=<span class="string">'File does not exist in current directory'</span>;
+        msgbox(line,<span class="string">'File does not exist'</span>,<span class="string">'warn'</span>);
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% get vector of experimental measurement times</span>
+fileptr = importdata(strcat(<span class="string">''</span>,filename), <span class="string">'\t'</span>);
+time_vector = fileptr.data(:,1)'; <span class="comment">% store vector of times</span>
+emp_virus_vector = fileptr.data(:,2)'; <span class="comment">% store vector of empirically measured virus concentration</span>
+
+<span class="comment">% Call ode solver with parameters and return simulated virus concentration</span>
+<span class="comment">% at various time points (same time as in empirical experiments)</span>
+sim_virus_vector = odecall_eclipse_tcl_jv_local(target,0,<span class="keyword">...</span>
+        0,log10(V0),log10(beta),log10(p),log10(delta),gamma,k,endtime,<span class="keyword">...</span>
+        time_vector,filename,1,1,1,1);
+
+<span class="comment">% Calculate the sum of squared residuals (SSR)</span>
+ssr = sum((sim_virus_vector - emp_virus_vector).^2);
+
+<span class="comment">% Show it in the textbox</span>
+set(handles.ssr_editText,<span class="string">'String'</span>,num2str(ssr));
+
+<span class="comment">% Update handles structure</span>
+guidata(hObject, handles);
+
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> axes1_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to axes1 (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: place code in OpeningFcn to populate axes1</span>
+
+
+
+<span class="keyword">function</span> target_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to target_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of target_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of target_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> target_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to target_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> eclipse_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to eclipse_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of eclipse_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of eclipse_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> eclipse_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to eclipse_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> gamma_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to gamma_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of gamma_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of gamma_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> gamma_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to gamma_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> V0_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to V0_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of V0_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of V0_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> V0_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to V0_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> beta_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to beta_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of beta_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of beta_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> beta_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to beta_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> p_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to p_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of p_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of p_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> p_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to p_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> delta_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to delta_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of delta_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of delta_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> delta_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to delta_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> endtime_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to endtime_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of endtime_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of endtime_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> endtime_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to endtime_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> filename_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to filename_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of filename_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of filename_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> filename_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to filename_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> ssr_editText_Callback(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to ssr_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    structure with handles and user data (see GUIDATA)</span>
+
+<span class="comment">% Hints: get(hObject,'String') returns contents of ssr_editText as text</span>
+<span class="comment">%        str2double(get(hObject,'String')) returns contents of ssr_editText as a double</span>
+
+
+<span class="comment">% --- Executes during object creation, after setting all properties.</span>
+<span class="keyword">function</span> ssr_editText_CreateFcn(hObject, eventdata, handles)
+<span class="comment">% hObject    handle to ssr_editText (see GCBO)</span>
+<span class="comment">% eventdata  reserved - to be defined in a future version of MATLAB</span>
+<span class="comment">% handles    empty - handles not created until after all CreateFcns called</span>
+
+<span class="comment">% Hint: edit controls usually have a white background on Windows.</span>
+<span class="comment">%       See ISPC and COMPUTER.</span>
+<span class="keyword">if</span> ispc &amp;&amp; isequal(get(hObject,<span class="string">'BackgroundColor'</span>), get(0,<span class="string">'defaultUicontrolBackgroundColor'</span>))
+    set(hObject,<span class="string">'BackgroundColor'</span>,<span class="string">'white'</span>);
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="odesolver_outline_01.png" alt=""> <p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+function varargout = odesolver_outline(varargin)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function to call ODE solver and plot results and calculate SSR
+%
+% Name - odesolver_outline
+% Creation Date - 18th Oct 2011
+% Author - Soumya Banerjee
+% Website - www.cs.unm.edu/~soumya
+%
+%
+% Description - function to call ODE solver with eclipse phase, target cell
+%                   limited model, and plot results and 
+%                   calculate SSR
+%
+% Parameters - 
+%               target - initial target cell density (/mL)
+%               infected1 - initial latently infected cell density (/mL)
+%               infected2 - initial productively infected cell density
+%               (/mL)
+%               virus - initial virus density (/mL)
+%               beta - infectivity
+%               p - replication rate (PFU/day)
+%               delta - infected cell death rate )/day)
+%               gamma - immune system clearance rate (/day)
+%               k - eclipse phase (rate of transition from I1 to I2) (/day)
+%               time_phase - duration of simulation(days)
+%               time_vector - vector of measured times (days)
+%               fileptr - handle to data file
+%               plotfig - 1 if data and model simulation needs to be
+%                          plotted,
+%                         0 if no plot needed  
+%               figorssr - 1 if there is a need to access the data file
+%                           (needed when need to calculate SSR or
+%                            need to plot the data in the figure),
+%                          0 if access to data file is not needed 
+%               mac - 1 if this is my mac, 
+%                     0 if my linux desktop
+%               interp - 1 if interpolation of simulation needed,
+%                        0 if not needed
+%
+%
+%
+%
+% Assumptions - 1) all parameters passed in numerical values and are
+%                   positive real numbers
+%
+% Comments -    
+%
+% License -      BSD license
+%
+% Change History - 
+%                   18th Oct 2011 - Creation by Soumya Banerjee
+%                   20th Oct 2011 - Modified by Soumya Banerjee to
+%                           validate text fields and added SSR field
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ODESOLVER_OUTLINE MATLAB code for odesolver_outline.fig
+%      ODESOLVER_OUTLINE, by itself, creates a new ODESOLVER_OUTLINE or raises the existing
+%      singleton*.
+%
+%      H = ODESOLVER_OUTLINE returns the handle to a new ODESOLVER_OUTLINE or the handle to
+%      the existing singleton*.
+%
+%      ODESOLVER_OUTLINE('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in ODESOLVER_OUTLINE.M with the given input arguments.
+%
+%      ODESOLVER_OUTLINE('Property','Value',...) creates a new ODESOLVER_OUTLINE or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before odesolver_outline_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to odesolver_outline_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help odesolver_outline
+
+% Last Modified by GUIDE v2.5 20-Oct-2011 18:05:21
+
+% Begin initialization code - DO NOT EDIT
+
+
+
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @odesolver_outline_OpeningFcn, ...
+                   'gui_OutputFcn',  @odesolver_outline_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% REPLACE_WITH_DASH_DASH- Executes just before odesolver_outline is made visible.
+function odesolver_outline_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to odesolver_outline (see VARARGIN)
+
+% Choose default command line output for odesolver_outline
+handles.output = hObject;
+
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes odesolver_outline wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% REPLACE_WITH_DASH_DASH- Outputs from this function are returned to the command line.
+function varargout = odesolver_outline_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+% REPLACE_WITH_DASH_DASH- Executes on button press in pushbutton1.
+function pushbutton1_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+target = str2double(get(handles.target_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(target)
+    % test if field empty
+    if isempty(get(handles.target_editText,'String'))
+        line{1}='Target cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='Target must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+k = str2double(get(handles.eclipse_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(k)
+    % test if field empty
+    if isempty(get(handles.eclipse_editText,'String'))
+        line{1}='k cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='k must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+gamma = str2double(get(handles.gamma_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(gamma)
+    % test if field empty
+    if isempty(get(handles.gamma_editText,'String'))
+        line{1}='Gamma cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='Gamma must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+V0 = str2double(get(handles.V0_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(V0)
+    % test if field empty
+    if isempty(get(handles.V0_editText,'String'))
+        line{1}='V0 cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='V0 must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+beta = str2double(get(handles.beta_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(beta)
+    % test if field empty
+    if isempty(get(handles.beta_editText,'String'))
+        line{1}='Beta cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='Beta must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+p = str2double(get(handles.p_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(p)
+    % test if field empty
+    if isempty(get(handles.p_editText,'String'))
+        line{1}='p cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='p must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+delta = str2double(get(handles.delta_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(delta)
+    % test if field empty
+    if isempty(get(handles.delta_editText,'String'))
+        line{1}='Delta cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='Delta must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+endtime = str2double(get(handles.endtime_editText,'String'));
+% validate field str2double returns NaN if textbox empty or
+% has non-numeric value
+if isnan(endtime)
+    % test if field empty
+    if isempty(get(handles.endtime_editText,'String'))
+        line{1}='Endtime cannot be empty (must be a positive real number)';
+        msgbox(line,'Invalid value','warn');
+        return
+    else
+        % field must be non-numeric
+        line{1}='Endtime must be a positive real number';
+        msgbox(line,'Invalid value','warn');
+        return
+    end
+end
+
+filename = get(handles.filename_editText,'String');
+% validate field 
+if isempty(filename)
+    line{1}='Filename cannot be empty (must be alphanumeric)';
+    msgbox(line,'Invalid value','warn');
+    return
+else
+    % check if file exists in current directory
+    if ~exist(filename,'file')
+        line{1}='File does not exist in current directory';
+        msgbox(line,'File does not exist','warn');
+        return
+    end
+end
+
+% get vector of experimental measurement times
+fileptr = importdata(strcat('',filename), '\t');
+time_vector = fileptr.data(:,1)'; % store vector of times
+emp_virus_vector = fileptr.data(:,2)'; % store vector of empirically measured virus concentration
+
+% Call ode solver with parameters and return simulated virus concentration
+% at various time points (same time as in empirical experiments)
+sim_virus_vector = odecall_eclipse_tcl_jv_local(target,0,...
+        0,log10(V0),log10(beta),log10(p),log10(delta),gamma,k,endtime,...
+        time_vector,filename,1,1,1,1);
+
+% Calculate the sum of squared residuals (SSR)
+ssr = sum((sim_virus_vector - emp_virus_vector).^2);
+
+% Show it in the textbox
+set(handles.ssr_editText,'String',num2str(ssr));
+
+% Update handles structure
+guidata(hObject, handles);
+
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function axes1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to axes1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate axes1
+
+
+
+function target_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to target_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of target_editText as text
+%        str2double(get(hObject,'String')) returns contents of target_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function target_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to target_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function eclipse_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to eclipse_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of eclipse_editText as text
+%        str2double(get(hObject,'String')) returns contents of eclipse_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function eclipse_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to eclipse_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function gamma_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to gamma_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of gamma_editText as text
+%        str2double(get(hObject,'String')) returns contents of gamma_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function gamma_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to gamma_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function V0_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to V0_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of V0_editText as text
+%        str2double(get(hObject,'String')) returns contents of V0_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function V0_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to V0_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function beta_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to beta_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of beta_editText as text
+%        str2double(get(hObject,'String')) returns contents of beta_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function beta_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to beta_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function p_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to p_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of p_editText as text
+%        str2double(get(hObject,'String')) returns contents of p_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function p_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to p_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function delta_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to delta_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of delta_editText as text
+%        str2double(get(hObject,'String')) returns contents of delta_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function delta_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to delta_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function endtime_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to endtime_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of endtime_editText as text
+%        str2double(get(hObject,'String')) returns contents of endtime_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function endtime_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to endtime_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function filename_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to filename_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of filename_editText as text
+%        str2double(get(hObject,'String')) returns contents of filename_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function filename_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to filename_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function ssr_editText_Callback(hObject, eventdata, handles)
+% hObject    handle to ssr_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ssr_editText as text
+%        str2double(get(hObject,'String')) returns contents of ssr_editText as a double
+
+
+% REPLACE_WITH_DASH_DASH- Executes during object creation, after setting all properties.
+function ssr_editText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ssr_editText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+##### SOURCE END #####
+--></body></html>
